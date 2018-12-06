@@ -4,7 +4,7 @@ module RailsEventStoreActiveRecord
   class EventRepositoryReader
 
     def has_event?(event_id)
-      Event.exists?(id: event_id)
+      Event.exists?(event_id: event_id)
     end
 
     def last_stream_event(stream)
@@ -13,8 +13,6 @@ module RailsEventStoreActiveRecord
     end
 
     def read(spec)
-      raise RubyEventStore::ReservedInternalName if spec.stream.name.eql?(EventRepository::SERIALIZED_GLOBAL_STREAM_NAME)
-
       stream = read_scope(spec)
 
       if spec.batched?
@@ -32,40 +30,54 @@ module RailsEventStoreActiveRecord
     end
 
     def count(spec)
-      raise RubyEventStore::ReservedInternalName if spec.stream.name.eql?(EventRepository::SERIALIZED_GLOBAL_STREAM_NAME)
-
       read_scope(spec).count
     end
 
     private
 
     def read_scope(spec)
-      stream = EventInStream.preload(:event).where(stream: normalize_stream_name(spec))
-      stream = stream.where(event_id: spec.with_ids) if spec.with_ids?
-      stream = stream.joins(:event).where(event_store_events: {event_type: spec.with_types}) if spec.with_types?
-      stream = stream.order(position: order(spec)) unless spec.stream.global?
-      stream = stream.limit(spec.limit) if spec.limit?
-      stream = stream.where(start_condition(spec)) if spec.start
-      stream = stream.where(stop_condition(spec)) if spec.stop
-      stream = stream.order(id: order(spec))
-      stream
-    end
-
-    def normalize_stream_name(specification)
-      specification.stream.global? ? EventRepository::SERIALIZED_GLOBAL_STREAM_NAME : specification.stream.name
+      if spec.stream.global?
+        stream = Event.order(id: order(spec))
+        stream = stream.where(event_id: spec.with_ids) if spec.with_ids?
+        stream = stream.where(event_type: spec.with_types) if spec.with_types?
+        stream = stream.limit(spec.limit) if spec.limit?
+        stream = stream.where(start_condition_in_global_stream(spec)) if spec.start
+        stream = stream.where(stop_condition_in_global_stream(spec)) if spec.stop
+        stream
+      else
+        stream = EventInStream.preload(:event).where(stream: spec.stream.name)
+        stream = stream.where(event_id: spec.with_ids) if spec.with_ids?
+        stream = stream.joins(:event).where(event_store_events: {event_type: spec.with_types}) if spec.with_types?
+        stream = stream.order(position: order(spec), id: order(spec))
+        stream = stream.limit(spec.limit) if spec.limit?
+        stream = stream.where(start_condition(spec)) if spec.start
+        stream = stream.where(stop_condition(spec)) if spec.stop
+        stream
+      end
     end
 
     def start_condition(specification)
-      event_record =
-        EventInStream.find_by!(event_id: specification.start, stream: normalize_stream_name(specification))
+      event_record = EventInStream.find_by!(event_id: specification.start, stream: specification.stream.name)
       condition = specification.forward? ? 'event_store_events_in_streams.id > ?' : 'event_store_events_in_streams.id < ?'
       [condition, event_record]
     end
 
     def stop_condition(specification)
       event_record =
-        EventInStream.find_by!(event_id: specification.stop, stream: normalize_stream_name(specification))
+        EventInStream.find_by!(event_id: specification.stop, stream: specification.stream.name)
       condition = specification.forward? ? 'event_store_events_in_streams.id < ?' : 'event_store_events_in_streams.id > ?'
+      [condition, event_record]
+    end
+
+    def start_condition_in_global_stream(specification)
+      event_record = Event.find_by!(event_id: specification.start)
+      condition = specification.forward? ? 'event_store_events.id > ?' : 'event_store_events.id < ?'
+      [condition, event_record]
+    end
+
+    def stop_condition_in_global_stream(specification)
+      event_record = Event.find_by!(event_id: specification.stop)
+      condition = specification.forward? ? 'event_store_events.id < ?' : 'event_store_events.id > ?'
       [condition, event_record]
     end
 
@@ -74,11 +86,13 @@ module RailsEventStoreActiveRecord
     end
 
     def build_event_instance(record)
+      record = record.event if EventInStream === record
+
       RubyEventStore::SerializedRecord.new(
-        event_id: record.event.id,
-        metadata: record.event.metadata,
-        data: record.event.data,
-        event_type: record.event.event_type
+        event_id: record.event_id,
+        metadata: record.metadata,
+        data: record.data,
+        event_type: record.event_type
       )
     end
   end
