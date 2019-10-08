@@ -61,7 +61,7 @@ module RubyEventStore
         some_mapper1 = Transformation::SymbolizeMetadataKeys.new
         some_mapper2 = Transformation::StringifyMetadataKeys.new
         pipe = Pipeline.new(to_domain_event: domain_mapper, to_serialized_record: record_mapper, transformations: [some_mapper1, some_mapper2])
-        record  = SerializedRecord.new(event_id: SecureRandom.uuid, data: '', metadata: '', event_type: 'TestEvent')
+        record  = SerializedRecord.new(event_id: SecureRandom.uuid, data: '', metadata: '', event_type: 'TestEvent', timestamp: '')
         item1 = Transformation::Item.new(event_id: record.event_id, item: 1)
         item2 = Transformation::Item.new(event_id: record.event_id, item: 2)
         item3 = Transformation::Item.new(event_id: record.event_id, item: 3)

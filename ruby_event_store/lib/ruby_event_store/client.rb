@@ -222,8 +222,16 @@ module RubyEventStore
     # {http://railseventstore.org/docs/subscribe/#async-handlers Read more}
     #
     # @return [Event, Proto] deserialized event
-    def deserialize(event_type:, event_id:, data:, metadata:)
-      mapper.serialized_record_to_event(SerializedRecord.new(event_type: event_type, event_id: event_id, data: data, metadata: metadata))
+    def deserialize(event_type:, event_id:, data:, metadata:, timestamp:)
+      mapper.serialized_record_to_event(
+        SerializedRecord.new(
+          event_type: event_type,
+          event_id: event_id,
+          data: data,
+          metadata: metadata,
+          timestamp: timestamp,
+        )
+      )
     end
 
     # Read additional metadata which will be added for published events

@@ -21,7 +21,7 @@ module RubyEventStore
           eleven: [1,2,3],
         } }
         let(:uuid) { SecureRandom.uuid }
-        let(:item) { Item.new(event_id: uuid, data: "anything", metadata: metadata) }
+        let(:item) { Item.new(event_id: uuid, data: "anything", metadata: metadata, timestamp: Time.utc(2019, 9, 30)) }
 
         specify "#initialize requires protobuf_nested_struct" do
           p = ProtobufNestedStructMetadata.allocate

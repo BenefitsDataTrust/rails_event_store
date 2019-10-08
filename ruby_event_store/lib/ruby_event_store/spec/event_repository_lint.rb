@@ -12,6 +12,7 @@ module RubyEventStore
         data:       data,
         metadata:   metadata,
         event_type: event_type,
+        timestamp:  Time.utc(2019, 9, 30).iso8601(TIME_PRECISION),
       )
     end
   end

@@ -160,7 +160,9 @@ module RubyEventStore
 
       before(:each) { require_protobuf_dependencies }
 
-      let(:event_id)     { "f90b8848-e478-47fe-9b4a-9f2a1d53622b" }
+      let(:time) { Time.now.utc }
+      let(:serialized_time) { time.iso8601(TIME_PRECISION) }
+      let(:event_id) { "f90b8848-e478-47fe-9b4a-9f2a1d53622b" }
       let(:metadata) { {
         one: 1,
         two: 2.0,
@@ -173,6 +175,7 @@ module RubyEventStore
         nein: nil,
         ten: {some: 'hash', with: {nested: 'values'}},
         eleven: [1,2,3],
+        timestamp: time
       } }
       let(:data) do
         ResTesting::OrderCreated.new(
@@ -207,6 +210,7 @@ module RubyEventStore
         expect(record.data).not_to     be_empty
         expect(record.metadata).not_to be_empty
         expect(record.event_type).to   eq("res_testing.OrderCreated")
+        expect(record.timestamp).to    eq(serialized_time)
       end
 
       specify '#serialized_record_to_event returns event instance' do
@@ -216,6 +220,7 @@ module RubyEventStore
         expect(event.event_id).to       eq(event_id)
         expect(event.data).to           eq(data)
         expect(event.metadata.to_h).to  eq(metadata)
+        expect(event.timestamp).to      eq(time)
       end
 
       specify '#serialized_record_to_event is using events class remapping' do
@@ -227,10 +232,12 @@ module RubyEventStore
           data:       "",
           metadata:   "",
           event_type: "res_testing.OrderCreatedBeforeRefactor",
+          timestamp:  serialized_time,
         )
         event = subject.serialized_record_to_event(record)
         expect(event.data.class).to eq(ResTesting::OrderCreated)
         expect(event.event_type).to eq("res_testing.OrderCreated")
+        expect(event.timestamp).to  eq(time)
       end
     end
   end

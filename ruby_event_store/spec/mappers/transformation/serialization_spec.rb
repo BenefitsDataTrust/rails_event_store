@@ -13,6 +13,7 @@ module RubyEventStore
             data: "---\n:some: value\n",
             metadata: "---\n:some: meta\n",
             event_type: 'TestEvent',
+            timestamp: Time.utc(2019, 9, 30),
           )
         }
         let(:item)   {
@@ -21,6 +22,7 @@ module RubyEventStore
             data:       {some: 'value'},
             metadata:   {some: 'meta'},
             event_type: 'TestEvent',
+            timestamp:  Time.utc(2019, 9, 30),
           )
         }
 

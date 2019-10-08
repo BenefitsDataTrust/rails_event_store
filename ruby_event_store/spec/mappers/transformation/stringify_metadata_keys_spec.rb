@@ -12,6 +12,7 @@ module RubyEventStore
             metadata:   JSON.parse(JSON.dump({some: 'meta'})),
             data:       JSON.parse(JSON.dump({some: 'value'})),
             event_type: 'TestEvent',
+            timestamp:  Time.utc(2019, 9, 30)
           )
         }
         let(:changed_item)  {
@@ -20,6 +21,7 @@ module RubyEventStore
             metadata:   {some: 'meta'},
             data:       JSON.parse(JSON.dump({some: 'value'})),
             event_type: 'TestEvent',
+            timestamp:  Time.utc(2019, 9, 30)
           )
         }
 

@@ -25,7 +25,7 @@ module RailsEventStore
 
     it_behaves_like :dispatcher, AfterCommitAsyncDispatcher.new(scheduler: CustomScheduler.new)
 
-    let(:event) { RailsEventStore::Event.new(event_id: "83c3187f-84f6-4da7-8206-73af5aca7cc8") }
+    let(:event) { TimestampEnrichment.with_timestamp(RailsEventStore::Event.new(event_id: "83c3187f-84f6-4da7-8206-73af5aca7cc8")) }
     let(:serialized_event) { RubyEventStore::Mappers::Default.new.event_to_serialized_record(event) }
     let(:dispatcher) do
       described_class.new(scheduler: CustomScheduler.new)
