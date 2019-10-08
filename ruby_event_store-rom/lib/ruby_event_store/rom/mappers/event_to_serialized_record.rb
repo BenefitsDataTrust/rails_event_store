@@ -10,8 +10,8 @@ module RubyEventStore
         register_as :event_to_serialized_record
 
         map_array do
-          rename_keys id: :event_id
-          accept_keys %i[event_id data metadata event_type]
+          rename_keys id: :event_id, created_at: :timestamp
+          accept_keys %i[event_id data metadata event_type timestamp]
           constructor_inject RubyEventStore::SerializedRecord
         end
       end
