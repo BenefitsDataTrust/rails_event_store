@@ -13,7 +13,7 @@ module RailsEventStoreActiveRecord
 
     def append_to_stream(events, stream, expected_version)
       add_to_stream(Array(events), stream, expected_version, true) do |event|
-        build_event_record(event).save!
+        build_event_record(event).save!(touch: false)
         event.event_id
       end
     end
@@ -49,7 +49,11 @@ module RailsEventStoreActiveRecord
     end
 
     def update_messages(messages)
-      hashes = messages.map(&:to_h)
+      hashes = messages.map do |m|
+        m_ = m.to_h
+        m_[:created_at] = m_.delete(:timestamp)
+        m_
+      end
       hashes.each{|h| h[:id] = h.delete(:event_id) }
       for_update = messages.map(&:event_id)
       start_transaction do
@@ -119,7 +123,8 @@ module RailsEventStoreActiveRecord
         id:         serialized_record.event_id,
         data:       serialized_record.data,
         metadata:   serialized_record.metadata,
-        event_type: serialized_record.event_type
+        event_type: serialized_record.event_type,
+        created_at: Time.parse(serialized_record.timestamp),
       )
     end
 
