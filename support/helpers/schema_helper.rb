@@ -10,8 +10,8 @@ module SchemaHelper
     m.run_migration(name)
   end
 
-  def establish_database_connection
-    ActiveRecord::Base.establish_connection(ENV['DATABASE_URL'])
+  def establish_database_connection(config_or_env = ENV['DATABASE_URL'])
+    ActiveRecord::Base.establish_connection(config_or_env)
   end
 
   def close_database_connection
