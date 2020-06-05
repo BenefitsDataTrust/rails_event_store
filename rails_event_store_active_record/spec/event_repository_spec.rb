@@ -15,6 +15,8 @@ module RailsEventStoreActiveRecord
     belongs_to :event
   end
 
+  CustomApplicationRecord = Class.new(ActiveRecord::Base)
+
   RSpec.describe EventRepository do
     include SchemaHelper
 
@@ -314,14 +316,12 @@ module RailsEventStoreActiveRecord
     end
 
     specify 'allows custom base class' do
-      CustomApplicationRecord = Class.new(ActiveRecord::Base)
       repository = EventRepository.new(CustomApplicationRecord)
       expect(repository.instance_variable_get(:@event_klass).ancestors).to include(CustomApplicationRecord)
       expect(repository.instance_variable_get(:@stream_klass).ancestors).to include(CustomApplicationRecord)
     end
 
     specify 'reading/writting works with custom base class' do
-      CustomApplicationRecord = Class.new(ActiveRecord::Base)
       repository = EventRepository.new(CustomApplicationRecord)
       repository.append_to_stream(
         [event = RubyEventStore::SRecord.new],
@@ -335,7 +335,6 @@ module RailsEventStoreActiveRecord
     end
 
     specify 'each repository must have different AR classes' do
-      CustomApplicationRecord = Class.new(ActiveRecord::Base)
       repository1 = EventRepository.new(CustomApplicationRecord)
       repository2 = EventRepository.new(CustomApplicationRecord)
       event_klass_1 = repository1.instance_variable_get(:@event_klass).name
