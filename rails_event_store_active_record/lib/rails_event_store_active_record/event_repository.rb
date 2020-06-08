@@ -8,6 +8,10 @@ module RailsEventStoreActiveRecord
     SERIALIZED_GLOBAL_STREAM_NAME = "all".freeze
 
     def initialize(base_klass = ActiveRecord::Base)
+      raise ArgumentError.new(
+        "#{base_klass} must be an abstract class or ActiveRecord::Base"
+      ) unless ActiveRecord::Base.equal?(base_klass) || base_klass.abstract_class?
+
       @base_klass = base_klass
       instance_uuid = SecureRandom.uuid.gsub('-','')
       @event_klass = Object.const_set("Event_"+instance_uuid,

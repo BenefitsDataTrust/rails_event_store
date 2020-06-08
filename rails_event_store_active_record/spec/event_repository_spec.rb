@@ -15,7 +15,9 @@ module RailsEventStoreActiveRecord
     belongs_to :event
   end
 
-  CustomApplicationRecord = Class.new(ActiveRecord::Base)
+  class CustomApplicationRecord < ActiveRecord::Base
+    self.abstract_class = true
+  end
 
   RSpec.describe EventRepository do
     include SchemaHelper
@@ -343,6 +345,14 @@ module RailsEventStoreActiveRecord
       stream_klass_2 = repository2.instance_variable_get(:@stream_klass).name
       expect(event_klass_1).not_to eq(event_klass_2)
       expect(stream_klass_1).not_to eq(stream_klass_2)
+    end
+
+    specify 'Base for event repository models must be an abstract class' do
+      NonAbstractClass = Class.new(ActiveRecord::Base)
+      expect {
+        EventRepository.new(NonAbstractClass)
+      }.to raise_error(ArgumentError)
+       .with_message('RailsEventStoreActiveRecord::NonAbstractClass must be an abstract class or ActiveRecord::Base')
     end
 
     def cleanup_concurrency_test
