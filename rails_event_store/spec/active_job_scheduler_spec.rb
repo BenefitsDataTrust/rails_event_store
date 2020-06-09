@@ -68,7 +68,7 @@ module RailsEventStore
                 "data"            => "--- {}\n",
                 "metadata"        => "--- {}\n",
                 "timestamp"       => "2019-09-30T00:00:00.000000000Z",
-                "_aj_symbol_keys" => %w[event_id data metadata event_type],
+                "_aj_symbol_keys" => %w[event_id data metadata event_type timestamp],
               },
             ],
             queue: "default",
